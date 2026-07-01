@@ -1,0 +1,3 @@
+# Node.js Project Dependencies
+express==4.19.2
+dotenv==16.4.5

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Workspace</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Workspace Tasks</h1>
+    <form id="todo-form">
+      <input type="text" id="todo-input" placeholder="Add a new task..." required>
+      <button type="submit">Add</button>
+    </form>
+    <ul id="todo-list"></ul>
+  </div>
+
+  <script>
+    const form = document.getElementById('todo-form');
+    const input = document.getElementById('todo-input');
+    const todoList = document.getElementById('todo-list');
+
+    const fetchTodos = async () => {
+      const res = await fetch('/api/todos');
+      const todos = await res.json();
+      todoList.innerHTML = '';
+      todos.forEach(todo => renderTodo(todo));
+    };
+
+    const renderTodo = (todo) => {
+      const li = document.createElement('li');
+      li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+      li.innerHTML = `
+        <span onclick="toggleTodo('${todo._id}')">${todo.title}</span>
+        <button class="delete-btn" onclick="deleteTodo('${todo._id}')">✕</button>
+      `;
+      todoList.appendChild(li);
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = input.value;
+
+      const res = await fetch('/api/todos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title })
+      });
+
+      const newTodo = await res.json();
+      renderTodo(newTodo);
+      input.value = '';
+      fetchTodos();
+    });
+
+    const toggleTodo = async (id) => {
+      await fetch(`/api/todos/${id}`, { method: 'PUT' });
+      fetchTodos();
+    };
+
+    const deleteTodo = async (id) => {
+      await fetch(`/api/todos/${id}`, { method: 'DELETE' });
+      fetchTodos();
+    };
+
+    fetchTodos();
+  </script>
+</body>
+</html>
